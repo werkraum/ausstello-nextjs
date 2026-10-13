@@ -1,9 +1,10 @@
 #!/bin/bash
 ## Description: Paket bauen, packen und in die Testinstanz installieren, Instanz bauen (idempotent, -f erzwingt)
 ## Usage: setup [-f]
+## Flags: [{"Name":"force","Shorthand":"f","Usage":"Einrichtung erzwingen"}]
 set -e
 cd /var/www/html
-if [ -f .instance/.setup ] && [ "$1" != "-f" ]; then
+if [ -f .instance/.setup ] && [ "$1" != "-f" ] && [ "$1" != "--force" ]; then
     echo "Testinstanz ist eingerichtet (setup -f erzwingt)."
     exit 0
 fi
