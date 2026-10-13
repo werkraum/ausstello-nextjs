@@ -55,8 +55,10 @@ Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" 
 ## Auswirkungen auf die Seite
 
 - Besucherparameter `filter[...]` und `page` gehen unverändert ans Backend; andere Parameter nicht.
-- Antworten liegen im Next-Data-Cache (Tag `ausstello`), höchstens 60 Sekunden bzw. `AUSSTELLO_CACHE_MAX_LIFETIME`. Sofort leeren: `revalidateTag('ausstello')`. Ist das Backend nicht erreichbar, liefert Next die zuletzt gespeicherte Antwort weiter.
-- Seiten mit `searchParams` rendert Next dynamisch.
+- Antworten liegen im Next-Data-Cache (Tag `ausstello`, auch als Export `CACHE_TAG` für `revalidateTag`), höchstens 60 Sekunden bzw. `AUSSTELLO_CACHE_MAX_LIFETIME`; die Sitemap bis zu 3600 Sekunden (ebenfalls durch `AUSSTELLO_CACHE_MAX_LIFETIME` gedeckelt). Sofort leeren: `revalidateTag('ausstello')`. Ist das Backend nicht erreichbar, liefert Next die zuletzt gespeicherte Antwort weiter.
+- Seiten mit ausstello-Komponenten (und die Sitemap) rendert Next immer dynamisch (`connection()`); die Antworten kommen trotzdem aus dem Data-Cache. So bleibt bei einem Ausfall die letzte gute Antwort erhalten, statt dass eine statisch gecachte Seite den Fallback festschreibt.
+- `generateMetadata`-Helfer und Komponente müssen dieselben Optionen bekommen (`basePath`, `perPage`, `preset`, …), damit beide dieselbe Anfrage teilen.
+- Weiche Navigation: Das Output-JS reagiert auf `ausstello:scan` (neues HTML einlesen) und `ausstello:leave` (beim Verlassen: offenes Filtermodal schließen, Scroll-Sperre lösen).
 - Filter-URLs sind `noindex` und verweisen per Canonical auf die ungefilterte Liste.
 - Eine Seite mit `openGraph` im Layout: Die Detailseite ersetzt `openGraph` vollständig (Next führt Metadata nur flach zusammen).
 

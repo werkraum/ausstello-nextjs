@@ -5,6 +5,7 @@
     "license": "GPL-2.0-or-later",
     "type": "module",
     "sideEffects": false,
+    "engines": { "node": ">=20" },
     "files": ["dist", "CHANGELOG.md"],
     "exports": {
         ".": {
@@ -17,7 +18,7 @@
         }
     },
     "scripts": {
-        "build": "tsup",
+        "build": "rm -rf dist && tsup",
         "typecheck": "tsc --noEmit",
         "test": "vitest run"
     },

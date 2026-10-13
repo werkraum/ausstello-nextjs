@@ -5,7 +5,6 @@ export default defineConfig([
         entry: { index: 'src/index.ts' },
         format: ['esm'],
         dts: true,
-        clean: true,
         external: ['@werkraum/ausstello-next/client', 'server-only', 'next', 'react', 'react-dom'],
     },
     {
