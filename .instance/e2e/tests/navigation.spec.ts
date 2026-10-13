@@ -5,9 +5,14 @@ import { expect, test } from '@playwright/test';
 const markSoft = (page: import('@playwright/test').Page) => page.evaluate(() => ((window as unknown as { __soft: number }).__soft = 1));
 const stillSoft = (page: import('@playwright/test').Page) => page.evaluate(() => (window as unknown as { __soft?: number }).__soft === 1);
 
-test('Menü (next/link) zur Liste: Filter sind initialisiert', async ({ page }) => {
-    await page.goto('/');
+test('Menü (next/link): geladenes Modul initialisiert die neue Liste per ausstello:scan', async ({ page }) => {
+    // Das Output-Modul ist schon geladen, bevor weich zur Liste navigiert wird.
+    await page.goto('/veranstaltungen');
+    await expect(page.locator('.ausstello[data-ausstello-ready="1"]').first()).toBeAttached();
     await markSoft(page);
+    await page.getByRole('link', { name: 'Start' }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('h1.ausstello-detail-title, .ausstello-list-teaser').first()).toBeVisible();
     await page.getByRole('link', { name: 'Veranstaltungen' }).click();
     await expect(page).toHaveURL(/\/veranstaltungen$/);
     await expect(page.locator('.ausstello[data-ausstello-ready="1"]').first()).toBeAttached();
