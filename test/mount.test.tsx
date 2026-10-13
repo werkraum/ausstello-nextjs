@@ -21,4 +21,18 @@ describe('AusstelloMount', () => {
         await act(async () => root.render(<AusstelloMount key="b" />));
         expect(count).toBe(2);
     });
+
+    it('feuert ausstello:leave beim Unmount genau einmal', async () => {
+        let count = 0;
+        const onLeave = () => count++;
+        document.addEventListener('ausstello:leave', onLeave);
+        const root = createRoot(document.createElement('div'));
+
+        await act(async () => root.render(<AusstelloMount />));
+        expect(count).toBe(0);
+
+        await act(async () => root.unmount());
+        expect(count).toBe(1);
+        document.removeEventListener('ausstello:leave', onLeave);
+    });
 });

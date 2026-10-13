@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('next/server', () => ({ connection: async () => {} }));
+
 import { sitemapEntries } from '../src/sitemap';
 
 beforeEach(() => {

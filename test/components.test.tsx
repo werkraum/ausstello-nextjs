@@ -7,6 +7,8 @@ vi.mock('next/navigation', () => ({
     },
 }));
 
+vi.mock('next/server', () => ({ connection: async () => {} }));
+
 const { AusstelloDetail, AusstelloList, AusstelloTeaser, cspSources, detailMetadata, listMetadata } = await import('../src/index');
 
 const envelope = (status = 200) => ({
@@ -43,6 +45,12 @@ describe('AusstelloList', () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
         const html = renderToStaticMarkup(await AusstelloList({ basePath: '/v', fallback: <p>Termine gerade nicht verfügbar</p> }));
         expect(html).toBe('<p>Termine gerade nicht verfügbar</p>');
+    });
+
+    it('AusstelloDetail rendert fallback, wenn das Backend ausfällt', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')));
+        const html = renderToStaticMarkup(await AusstelloDetail({ segment: 'x', basePath: '/v', fallback: <p>Termin gerade nicht verfügbar</p> }));
+        expect(html).toBe('<p>Termin gerade nicht verfügbar</p>');
     });
 
     it('rendert bei 404 nichts', async () => {
@@ -92,6 +100,11 @@ describe('Metadata', () => {
     it('listMetadata liefert {} bei Ausfall', async () => {
         vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('x')));
         expect(await listMetadata({ basePath: '/v' })).toEqual({});
+    });
+
+    it('detailMetadata liefert {} bei Ausfall', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('x')));
+        expect(await detailMetadata({ segment: 'x', basePath: '/v' })).toEqual({});
     });
 
     it('detailMetadata ⇒ notFound() bei 404', async () => {

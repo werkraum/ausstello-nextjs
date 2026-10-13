@@ -1,5 +1,6 @@
 import 'server-only';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import type { Outcome } from './envelope';
 import { Fragment } from './Fragment';
@@ -20,14 +21,17 @@ function render(outcome: Outcome, { fallback, nonce }: Common) {
 }
 
 export async function AusstelloList({ searchParams, fallback, nonce, ...options }: ListProps) {
+    await connection();
     return render(await loadList(options, searchParams), { fallback, nonce });
 }
 
 export async function AusstelloTeaser({ fallback, nonce, ...options }: TeaserProps) {
+    await connection();
     return render(await loadTeaser(options), { fallback, nonce });
 }
 
 export async function AusstelloDetail({ segment, basePath, fallback, nonce }: DetailProps) {
+    await connection();
     const outcome = await loadDetail(segment, basePath);
     if (outcome.kind === 'notFound') {
         notFound();
