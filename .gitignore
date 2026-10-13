@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.instance/node_modules/
+.instance/.next/
+.instance/.pack/
+.instance/.env
+.instance/.setup
+.instance/package-lock.json
+.instance/next-env.d.ts
+.instance/e2e/node_modules/
+.instance/e2e/test-results/
+.instance/e2e/playwright-report/

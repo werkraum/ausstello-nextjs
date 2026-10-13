@@ -1,0 +1,43 @@
+{
+    "name": "@werkraum/ausstello-next",
+    "version": "0.1.0",
+    "description": "Termine aus ausstello auf der eigenen Next.js-Seite (App Router)",
+    "license": "GPL-2.0-or-later",
+    "type": "module",
+    "sideEffects": false,
+    "files": ["dist"],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./client": {
+            "types": "./dist/client.d.ts",
+            "import": "./dist/client.js"
+        }
+    },
+    "scripts": {
+        "build": "tsup",
+        "typecheck": "tsc --noEmit",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "server-only": "^0.0.1"
+    },
+    "peerDependencies": {
+        "next": ">=15",
+        "react": ">=19",
+        "react-dom": ">=19"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "next": "16.4.0",
+        "react": "19.3.0",
+        "react-dom": "19.3.0",
+        "tsup": "^8.5.0",
+        "typescript": "^5.9.0",
+        "vitest": "^5.0.0"
+    }
+}
