@@ -78,8 +78,6 @@ Die Reihenfolge zählt: Der erste Build läuft vor dem Seeden und würde sonst d
 
 Nach Änderungen am Paket: `ddev setup -f && ddev restart`.
 
-Die Testinstanz nutzt `AUSSTELLO_TIMEOUT=10` und 10 Termine je Seite, weil die Liste im lokalen Backend mit den Demodaten langsam ist.
-
 Zurück zur TYPO3-Instanz: im Backend-DDEV `ddev console backend:integration:target https://ausstello-typo3-ext.ddev.site /veranstaltungen /veranstaltungen/detail/`.
 
 Unit-Tests: `npm test`.
