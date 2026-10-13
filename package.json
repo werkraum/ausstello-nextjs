@@ -5,7 +5,7 @@
     "license": "GPL-2.0-or-later",
     "type": "module",
     "sideEffects": false,
-    "files": ["dist"],
+    "files": ["dist", "CHANGELOG.md"],
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",

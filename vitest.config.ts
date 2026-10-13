@@ -8,5 +8,5 @@ export default defineConfig({
             '@werkraum/ausstello-next/client': fileURLToPath(new URL('./src/client/index.ts', import.meta.url)),
         },
     },
-    test: { environment: 'node' },
+    test: { environment: 'node', include: ['test/**/*.test.{ts,tsx}'] },
 });
