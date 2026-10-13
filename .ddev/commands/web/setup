@@ -1,0 +1,22 @@
+#!/bin/bash
+## Description: Paket bauen, packen und in die Testinstanz installieren, Instanz bauen (idempotent, -f erzwingt)
+## Usage: setup [-f]
+set -e
+cd /var/www/html
+if [ -f .instance/.setup ] && [ "$1" != "-f" ]; then
+    echo "Testinstanz ist eingerichtet (setup -f erzwingt)."
+    exit 0
+fi
+rm -f .instance/.setup
+npm ci
+npm run build
+# Der Tarball statt file:.. - so laeuft genau das, was auf npm landet, und React liegt nur einmal im Baum
+rm -rf .instance/.pack && mkdir -p .instance/.pack
+npm pack --pack-destination .instance/.pack
+mv .instance/.pack/*.tgz .instance/.pack/ausstello-next.tgz
+cd .instance
+[ -f .env ] || cp .env-dist .env
+rm -rf node_modules/@werkraum
+npm install
+npm run build
+touch .setup

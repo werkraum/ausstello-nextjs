@@ -1,0 +1,5 @@
+#!/bin/bash
+## Description: Backend (ausstello.de) auf die Next-Testinstanz ausrichten
+set -e
+cd "$DDEV_APPROOT/../.."
+ddev console backend:integration:target https://ausstello-nextjs.ddev.site /veranstaltungen /veranstaltungen/

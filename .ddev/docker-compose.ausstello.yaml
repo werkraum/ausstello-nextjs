@@ -1,0 +1,5 @@
+# Der Server-Abruf erreicht das Backend-DDEV ueber den Router (wie bei TYPO3)
+services:
+    web:
+        external_links:
+            - "ddev-router:ausstello.de.ddev.site"

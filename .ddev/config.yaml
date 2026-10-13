@@ -1,0 +1,24 @@
+name: ausstello-nextjs
+type: generic
+docroot: ""
+webserver_type: generic
+nodejs_version: "22"
+omit_containers: [db]
+timezone: Europe/Berlin
+web_environment:
+    - AUSSTELLO_BACKEND_URL=https://ausstello.de.ddev.site
+    # Node vertraut sonst dem mkcert-Zertifikat des Backend-DDEV nicht
+    - NODE_EXTRA_CA_CERTS=/mnt/ddev-global-cache/mkcert/rootCA.pem
+web_extra_exposed_ports:
+    - name: next
+      container_port: 3000
+      http_port: 80
+      https_port: 443
+web_extra_daemons:
+    # Wartet auf das erste setup, getestet wird der Produktions-Build (next start)
+    - name: next
+      command: bash -c 'until [ -f .instance/.setup ]; do sleep 2; done; exec npm --prefix .instance run start'
+      directory: /var/www/html
+hooks:
+    post-start:
+        - exec: /var/www/html/.ddev/commands/web/setup
