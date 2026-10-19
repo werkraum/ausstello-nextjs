@@ -1,8 +1,14 @@
 {
     "name": "@werkraum/ausstello-next",
     "version": "0.1.0",
+    "private": true,
     "description": "Termine aus ausstello auf der eigenen Next.js-Seite (App Router)",
     "license": "GPL-2.0-or-later",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/werkraum/ausstello-nextjs.git"
+    },
+    "homepage": "https://github.com/werkraum/ausstello-nextjs#readme",
     "type": "module",
     "sideEffects": false,
     "engines": { "node": ">=20" },
@@ -18,7 +24,8 @@
         }
     },
     "scripts": {
-        "build": "rm -rf dist && tsup",
+        "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup",
+        "prepare": "npm run build",
         "typecheck": "tsc --noEmit",
         "test": "vitest run"
     },

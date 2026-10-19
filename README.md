@@ -8,7 +8,19 @@ Next.js 15 oder 16 mit App Router, React 19, Node 20 oder neuer. Getestet (Unit-
 
 ## Installation
 
-    npm install @werkraum/ausstello-next
+Das Paket liegt nicht auf npm, sondern wird direkt aus GitHub installiert. Versionen sind Git-Tags (siehe `CHANGELOG.md`):
+
+    npm install github:werkraum/ausstello-nextjs#v0.1.0
+
+In der `package.json` steht danach:
+
+    "@werkraum/ausstello-next": "github:werkraum/ausstello-nextjs#v0.1.0"
+
+Importiert wird über den Paketnamen `@werkraum/ausstello-next`, nicht über den Namen des Repos.
+
+npm klont das Repo beim Installieren und baut das Paket selbst (Skript `prepare`); dafür lädt es einmalig die Build-Werkzeuge (tsup, TypeScript) herunter. Auf dem Build-Server braucht es also Zugriff auf github.com und die npm-Registry. Ohne `#v…` wird der aktuelle Stand von `main` installiert – für Kundenprojekte immer einen Tag angeben, damit `package-lock.json` eine feste Version festhält.
+
+Aktualisieren: Tag in der `package.json` ändern, dann `npm install`.
 
 ## Einstellungen
 
@@ -68,7 +80,9 @@ Besucher laden Stylesheets, Skripte, Bilder und Schriften direkt vom ausstello-B
 
 ## Entwicklung
 
-Frische Einrichtung in `integrations/nextjs`:
+Dieses Repo ist ein Spiegel. Entwickelt wird im ausstello-Hauptrepo unter `integrations/nextjs`; dort laufen auch die Tests in der CI. Änderungen hier bitte als Issue melden, nicht als Pull Request.
+
+Die Testinstanz braucht das Backend aus dem Hauptrepo. Frische Einrichtung in `integrations/nextjs`:
 
 1. `printf 'y\n' | ddev start` (das Backend-DDEV `ausstello.de` muss laufen)
 2. `ddev seed`
@@ -90,4 +104,9 @@ Browser-Tests:
 
 Sie brauchen `mkcert` im PATH (das Testskript vertraut dem DDEV-Zertifikat über `mkcert -CAROOT`) und eine POSIX-Shell.
 
-Veröffentlichen: Version in `package.json` und `CHANGELOG.md` setzen, dann `npm publish --access public` in `integrations/nextjs`.
+Veröffentlichen (im Hauptrepo):
+
+1. Version in `package.json` und `CHANGELOG.md` setzen, committen.
+2. `bin/nextjs-mirror --tag` – spiegelt `integrations/nextjs` nach `main` auf GitHub und setzt den Tag `v<version>` aus der `package.json`. Ohne `--tag` wird nur `main` aktualisiert.
+
+Ein Release über npm ist nicht vorgesehen; `"private": true` verhindert ein versehentliches `npm publish`.

@@ -9,9 +9,9 @@ if [ -f .instance/.setup ] && [ "$1" != "-f" ] && [ "$1" != "--force" ]; then
     exit 0
 fi
 rm -f .instance/.setup
+# npm ci baut ueber das prepare-Skript
 npm ci
-npm run build
-# Der Tarball statt file:.. - so laeuft genau das, was auf npm landet, und React liegt nur einmal im Baum
+# Der Tarball statt file:.. - so laeuft genau das, was ein Install aus GitHub bekommt, und React liegt nur einmal im Baum
 rm -rf .instance/.pack && mkdir -p .instance/.pack
 npm pack --pack-destination .instance/.pack
 mv .instance/.pack/*.tgz .instance/.pack/ausstello-next.tgz
