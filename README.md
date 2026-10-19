@@ -27,7 +27,7 @@ Aktualisieren: Tag in der `package.json` ändern, dann `npm install`.
 Umgebungsvariablen:
 
 - `AUSSTELLO_BACKEND_URL` – Adresse des ausstello-Backends, z. B. `https://mein.ausstello.de` (Pflicht; fehlt sie, bricht der Build mit einer Meldung ab)
-- `AUSSTELLO_TIMEOUT` – Zeitlimit je Abruf in Sekunden (Vorgabe 3)
+- `AUSSTELLO_TIMEOUT` – Zeitlimit je Abruf in Sekunden (Vorgabe 3). Eine Liste ohne Backend-Cache kann 1–3 Sekunden brauchen; läuft das Zeitlimit ab, sehen Besucher den `fallback`. Bei langsamem Backend 5 setzen.
 - `AUSSTELLO_CACHE_MAX_LIFETIME` – höchstens so lange wird eine Antwort gehalten (Vorgabe 300, `0` schaltet den Cache ab)
 
 Im ausstello-Backend unter Veröffentlichung → Integration müssen **Domain**, **Listen-URL** und **Detail-Präfix** genau zur Next-Seite passen. Bei Liste unter `/veranstaltungen` und Detail unter `/veranstaltungen/[segment]`: Listen-URL `/veranstaltungen`, Detail-Präfix `/veranstaltungen/`. Alle Links, Canonicals und die Sitemap baut das Backend aus diesen Werten.
@@ -64,6 +64,25 @@ Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" 
 
 `basePath` ist der Pfad der Seite mit der Liste. Unbekannte Termine beantwortet `AusstelloDetail` mit `notFound()`.
 
+## Titel, Beschreibung und Open Graph
+
+Das Backend liefert für die **Liste** keinen Titel und keine Beschreibung, nur Canonical, robots (`noindex` auf Filter-URLs) und Blätter-Links. Ohne eigene Angaben erbt die Liste Titel und Beschreibung aus dem Layout – meist die der Startseite. Eigene Werte setzen und die ausstello-Angaben darüberlegen:
+
+    export const generateMetadata = async ({ searchParams }: Props): Promise<Metadata> => ({
+        title: 'Veranstaltungen',
+        description: 'Alle Termine …',
+        ...(await listMetadata({ searchParams, basePath: '/veranstaltungen' })),
+    });
+
+Die **Detailseite** liefert Titel, Beschreibung, Canonical, Open Graph (Bild 1200×630), Twitter und JSON-LD. Hängt das Backend keinen Titel-Zusatz an, greift das `title.template` des Layouts.
+
+Next führt Metadata nur flach zusammen: Das `openGraph` der Detailseite ersetzt das des Layouts vollständig, `siteName` und `locale` fehlen dann. Wieder dazumischen:
+
+    export const generateMetadata = async ({ params }: Props): Promise<Metadata> => {
+        const meta = await detailMetadata({ segment: (await params).segment, basePath: '/veranstaltungen' });
+        return { ...meta, openGraph: { siteName: 'Meine Seite', locale: 'de_DE', ...meta.openGraph } };
+    };
+
 ## Auswirkungen auf die Seite
 
 - Besucherparameter `filter[...]` und `page` gehen unverändert ans Backend; andere Parameter nicht.
@@ -72,11 +91,11 @@ Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" 
 - `generateMetadata`-Helfer und Komponente müssen dieselben Optionen bekommen (`basePath`, `perPage`, `preset`, …), damit beide dieselbe Anfrage teilen.
 - Weiche Navigation: Das Output-JS reagiert auf `ausstello:scan` (neues HTML einlesen) und `ausstello:leave` (beim Verlassen: offenes Filtermodal schließen, Scroll-Sperre lösen).
 - Filter-URLs sind `noindex` und verweisen per Canonical auf die ungefilterte Liste.
-- Eine Seite mit `openGraph` im Layout: Die Detailseite ersetzt `openGraph` vollständig (Next führt Metadata nur flach zusammen).
+- Seiten mit ausstello-Komponenten werden über `connection()` dynamisch – aber erst, wenn das Rendern die Komponente erreicht. Fragt das Layout beim Build eine Datenbank ab, die es dort nicht gibt, scheitert das Vorrendern vorher. Dann wie bei den übrigen Routen `export const dynamic = 'force-dynamic'` setzen.
 
 ## Datenschutz und CSP
 
-Besucher laden Stylesheets, Skripte, Bilder und Schriften direkt vom ausstello-Backend und schicken Anmeldungen dorthin. `cspSources()` liefert den Origin des Backends; er gehört in `script-src`, `style-src`, `img-src`, `font-src` und `connect-src`. Die Einbindung gehört in die Datenschutzerklärung.
+Besucher laden Stylesheets, Skripte, Bilder und Schriften direkt vom ausstello-Backend und schicken Anmeldungen dorthin. `cspSources()` liefert den Origin des Backends; er gehört in `script-src`, `style-src`, `img-src`, `font-src` und `connect-src`. Die Einbindung gehört in die Datenschutzerklärung – und in den Text eines Cookie- oder Consent-Banners, wenn der aufzählt, welche externen Inhalte die Seite lädt.
 
 ## Entwicklung
 
