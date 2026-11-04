@@ -45,6 +45,41 @@ describe('fetchEnvelope', () => {
         expect(fetchMock.mock.calls[0]![0]).toBe('https://b.de/einbettung/v2/termin/x');
     });
 
+    it('holt einen veralteten Envelope aus dem Cache sofort frisch', async () => {
+        const now = Math.floor(Date.now() / 1000);
+        const stale = { ...envelope, html: '<p>alt</p>', cache: { maxAge: 60, generatedAt: now - 3600 } };
+        const fresh = { ...envelope, html: '<p>neu</p>', cache: { maxAge: 60, generatedAt: now } };
+        const fetchMock = vi.fn()
+            .mockResolvedValueOnce(new Response(JSON.stringify(stale), { status: 200 }))
+            .mockResolvedValueOnce(new Response(JSON.stringify(fresh), { status: 200 }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        const outcome = await fetchEnvelope(config, 'termin/x', '');
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect((fetchMock.mock.calls[1]![1] as RequestInit).cache).toBe('no-store');
+        expect(outcome.kind === 'ok' && outcome.envelope.html).toBe('<p>neu</p>');
+    });
+
+    it('behält den veralteten Envelope, wenn der frische Abruf scheitert', async () => {
+        const stale = { ...envelope, html: '<p>alt</p>', cache: { maxAge: 60, generatedAt: Math.floor(Date.now() / 1000) - 3600 } };
+        const fetchMock = vi.fn()
+            .mockResolvedValueOnce(new Response(JSON.stringify(stale), { status: 200 }))
+            .mockRejectedValueOnce(new Error('down'));
+        vi.stubGlobal('fetch', fetchMock);
+
+        const outcome = await fetchEnvelope(config, 'termin/x', '');
+
+        expect(outcome.kind === 'ok' && outcome.envelope.html).toBe('<p>alt</p>');
+    });
+
+    it('ruft einen frischen Envelope nur einmal ab', async () => {
+        const fetchMock = respond(200, { ...envelope, cache: { maxAge: 60, generatedAt: Math.floor(Date.now() / 1000) - 30 } });
+        vi.stubGlobal('fetch', fetchMock);
+        await fetchEnvelope(config, 'termin/x', '');
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
     it('Envelope mit Status 404 ist nicht gefunden', async () => {
         vi.stubGlobal('fetch', respond(404, { ...envelope, status: 404 }));
         expect(await fetchEnvelope(config, 'termin/x', '')).toEqual({ kind: 'notFound' });

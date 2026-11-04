@@ -24,6 +24,8 @@ export type Envelope = {
     head: EnvelopeHead;
     assets: EnvelopeAssets;
     maxAge: number;
+    /** Unix-Sekunden, zu denen das Backend den Envelope erzeugt hat; null bei älterem Backend. */
+    generatedAt: number | null;
 };
 
 export type Outcome = { kind: 'ok'; envelope: Envelope } | { kind: 'notFound' } | { kind: 'unavailable' };
@@ -86,5 +88,6 @@ export function parseEnvelope(data: unknown): Envelope | null {
             inlineCss: typeof assets.inlineCss === 'string' ? assets.inlineCss : '',
         },
         maxAge: Number.isInteger(cache.maxAge) ? (cache.maxAge as number) : 60,
+        generatedAt: Number.isInteger(cache.generatedAt) ? (cache.generatedAt as number) : null,
     };
 }

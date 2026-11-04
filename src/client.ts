@@ -24,12 +24,41 @@ function url(config: AusstelloConfig, path: string, query: string): string {
     return `${config.backendUrl}/einbettung/v2/${path}${query !== '' ? `?${query}` : ''}`;
 }
 
+/**
+ * Ab diesem Alter gilt ein Envelope aus dem Data-Cache als veraltet: Next liefert einen
+ * abgelaufenen Eintrag noch einmal aus und erneuert ihn erst im Hintergrund - egal, wie
+ * alt er ist. Eine lange nicht besuchte Seite zeigte so alten Inhalt und verwiese auf
+ * Output-Assets, die das Backend längst aufgeräumt hat (ungestylte Seite bis zum Reload).
+ * Spielraum: Data-Cache (revalidate) + Backend-Cache (ENVELOPE_MAX_AGE) + Uhrenabweichung.
+ */
+export function staleAfter(config: AusstelloConfig): number {
+    return Math.min(ENVELOPE_MAX_AGE, config.cacheMaxLifetime) + ENVELOPE_MAX_AGE + 120;
+}
+
 export async function fetchEnvelope(config: AusstelloConfig, path: string, query: string): Promise<Outcome> {
+    const outcome = await requestEnvelope(config, path, query, fetchOptions(config, ENVELOPE_MAX_AGE));
+    if (outcome.kind !== 'ok' || outcome.envelope.generatedAt === null || config.cacheMaxLifetime <= 0) {
+        return outcome;
+    }
+    const age = Math.floor(Date.now() / 1000) - outcome.envelope.generatedAt;
+    if (age <= staleAfter(config)) {
+        return outcome;
+    }
+    // Veraltet: frisch holen. Scheitert das, bleibt der alte Envelope - wie bei einem Ausfall.
+    const fresh = await requestEnvelope(config, path, query, { cache: 'no-store', signal: AbortSignal.timeout(config.timeout * 1000) }, false);
+
+    return fresh.kind === 'unavailable' ? outcome : fresh;
+}
+
+async function requestEnvelope(config: AusstelloConfig, path: string, query: string, init: RequestInit, log = true): Promise<Outcome> {
     const target = url(config, path, query);
     let response: Response;
     try {
-        response = await fetch(target, fetchOptions(config, ENVELOPE_MAX_AGE));
+        response = await fetch(target, init);
     } catch (error) {
+        if (!log) {
+            return UNAVAILABLE;
+        }
         console.error('ausstello: Backend nicht erreichbar', target, error);
         return UNAVAILABLE;
     }

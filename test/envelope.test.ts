@@ -56,4 +56,9 @@ describe('parseEnvelope', () => {
     it('nimmt 60 als maxAge, wenn cache fehlt', () => {
         expect(parseEnvelope({ ...valid, cache: undefined })!.maxAge).toBe(60);
     });
+
+    it('liest generatedAt, ohne Angabe null (älteres Backend)', () => {
+        expect(parseEnvelope({ ...valid, cache: { maxAge: 60, generatedAt: 1700000000 } })!.generatedAt).toBe(1700000000);
+        expect(parseEnvelope({ ...valid, cache: { maxAge: 60 } })!.generatedAt).toBeNull();
+    });
 });

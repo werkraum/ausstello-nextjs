@@ -18,6 +18,7 @@ const envelope: Envelope = {
         inlineCss: ':root{--x:1}',
     },
     maxAge: 60,
+    generatedAt: null,
 };
 
 describe('Assets', () => {
