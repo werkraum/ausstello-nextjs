@@ -31,6 +31,11 @@ describe('listQuery', () => {
         expect(query.get('filterbar')).toBe('0');
     });
 
+    it('übergibt Ausschlüsse als preset[exclude_...]', () => {
+        const query = new URLSearchParams(listQuery('list', { basePath: '/v', preset: { exclude_primary_category: [1] } }));
+        expect(query.getAll('preset[exclude_primary_category][]')).toEqual(['1']);
+    });
+
     it('lässt undefined-Werte weg', () => {
         expect(listQuery('list', { basePath: '/v' }, { page: undefined })).toBe('base=%2Fv');
     });

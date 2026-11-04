@@ -1,6 +1,9 @@
 export type SearchParams = Record<string, string | string[] | undefined>;
 
-export type Preset = Partial<Record<'locations' | 'tags' | 'primary_category' | 'secondary_category', number[]>>;
+type PresetKey = 'locations' | 'tags' | 'primary_category' | 'secondary_category';
+
+/** Nur diese Werte (`tags: [3]`) bzw. alle außer diesen (`exclude_tags: [3]`). */
+export type Preset = Partial<Record<PresetKey | `exclude_${PresetKey}`, number[]>>;
 
 export type ListOptions = {
     /** Pfad der Next-Seite mit der Liste, z. B. /veranstaltungen */

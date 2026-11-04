@@ -60,7 +60,7 @@ Im ausstello-Backend unter Veröffentlichung → Integration müssen **Domain**,
     // app/sitemap.ts
     export { sitemapEntries as default } from '@werkraum/ausstello-next';
 
-Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" perPage={3} />`. Weitere Props: `preset` (feste Vorauswahl nach `locations`, `tags`, `primary_category`, `secondary_category`), `perPage`, `filterbar={false}` (nur Liste), `fallback` (wird gezeigt, wenn das Backend nicht erreichbar ist), `nonce` (bei CSP mit Nonce).
+Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" perPage={3} />`. Weitere Props: `preset` (feste Vorauswahl nach `locations`, `tags`, `primary_category`, `secondary_category`; mit `exclude_`-Präfix das Gegenteil: `preset={{ exclude_primary_category: [1] }}` zeigt alle Termine außer denen mit Thema 1, Termine ohne Thema bleiben drin. Ausgeschlossene Werte fehlen auch in der Filterleiste. Gilt für `AusstelloList` ebenso), `perPage`, `filterbar={false}` (nur Liste), `fallback` (wird gezeigt, wenn das Backend nicht erreichbar ist), `nonce` (bei CSP mit Nonce).
 
 `basePath` ist der Pfad der Seite mit der Liste. Unbekannte Termine beantwortet `AusstelloDetail` mit `notFound()`.
 
