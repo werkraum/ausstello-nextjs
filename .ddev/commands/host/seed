@@ -1,8 +1,8 @@
 #!/bin/bash
-## Description: Backend (ausstello.de) auf die Next-Testinstanz ausrichten
+## Description: Backend (ausstello.de oder Worktree-Backend) auf diese Next-Testinstanz ausrichten
 # Der erste Build laeuft vor dem Seeden (Sitemap-Cache mit alter Domain): nach `ddev seed` auf einer
 # frischen Instanz `ddev setup -f && ddev restart` ausfuehren.
 set -e
 cd "$DDEV_APPROOT/../.."
-ddev console backend:integration:target https://ausstello-nextjs.ddev.site /veranstaltungen /veranstaltungen/
+ddev console backend:integration:target "$DDEV_PRIMARY_URL" /veranstaltungen /veranstaltungen/
 echo "Hinweis: auf einer frischen Instanz jetzt \`ddev setup -f && ddev restart\` ausfuehren."

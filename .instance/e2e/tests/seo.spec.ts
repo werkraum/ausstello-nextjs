@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const ORIGIN = 'https://ausstello-nextjs.ddev.site';
+const ORIGIN = process.env.DDEV_PRIMARY_URL ?? 'https://ausstello-nextjs.ddev.site';
 
 test('Liste: Titel und Canonical auf die Instanz', async ({ page }) => {
     await page.goto('/veranstaltungen');

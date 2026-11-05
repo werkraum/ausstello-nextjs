@@ -10,3 +10,4 @@ dist/
 .instance/e2e/node_modules/
 .instance/e2e/test-results/
 .instance/e2e/playwright-report/
+.ddev/.env

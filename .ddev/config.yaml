@@ -6,7 +6,7 @@ nodejs_version: "22"
 omit_containers: [db]
 timezone: Europe/Berlin
 web_environment:
-    - AUSSTELLO_BACKEND_URL=https://ausstello.de.ddev.site
+    # AUSSTELLO_BACKEND_URL setzt docker-compose.ausstello.yaml
     # Node vertraut sonst dem mkcert-Zertifikat des Backend-DDEV nicht
     - NODE_EXTRA_CA_CERTS=/mnt/ddev-global-cache/mkcert/rootCA.pem
 web_extra_exposed_ports:
