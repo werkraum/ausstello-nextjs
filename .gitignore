@@ -11,3 +11,4 @@ dist/
 .instance/e2e/test-results/
 .instance/e2e/playwright-report/
 .ddev/.env
+.ddev/config.local.yaml
