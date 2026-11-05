@@ -10,11 +10,11 @@ Next.js 15 oder 16 mit App Router, React 19, Node 20 oder neuer. Getestet (Unit-
 
 Das Paket liegt nicht auf npm, sondern wird direkt aus GitHub installiert. Versionen sind Git-Tags (siehe `CHANGELOG.md`):
 
-    npm install github:werkraum/ausstello-nextjs#v0.1.0
+    npm install github:werkraum/ausstello-nextjs#v0.2.0
 
 In der `package.json` steht danach:
 
-    "@werkraum/ausstello-next": "github:werkraum/ausstello-nextjs#v0.1.0"
+    "@werkraum/ausstello-next": "github:werkraum/ausstello-nextjs#v0.2.0"
 
 Importiert wird über den Paketnamen `@werkraum/ausstello-next`, nicht über den Namen des Repos.
 
