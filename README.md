@@ -30,7 +30,7 @@ Umgebungsvariablen:
 - `AUSSTELLO_TIMEOUT` – Zeitlimit je Abruf in Sekunden (Vorgabe 3). Eine Liste ohne Backend-Cache kann 1–3 Sekunden brauchen; läuft das Zeitlimit ab, sehen Besucher den `fallback`. Bei langsamem Backend 5 setzen.
 - `AUSSTELLO_CACHE_MAX_LIFETIME` – höchstens so lange wird eine Antwort gehalten (Vorgabe 300, `0` schaltet den Cache ab)
 
-Im ausstello-Backend unter Veröffentlichung → Integration müssen **Domain**, **Listen-URL** und **Detail-Präfix** genau zur Next-Seite passen. Bei Liste unter `/veranstaltungen` und Detail unter `/veranstaltungen/[segment]`: Listen-URL `/veranstaltungen`, Detail-Präfix `/veranstaltungen/`. Alle Links, Canonicals und die Sitemap baut das Backend aus diesen Werten.
+Im ausstello-Backend unter Teilen > Website > Integration müssen **Domain**, **Listen-URL** und **Detail-Präfix** genau zur Next-Seite passen. Bei Liste unter `/veranstaltungen` und Detail unter `/veranstaltungen/[segment]`: Listen-URL `/veranstaltungen`, Detail-Präfix `/veranstaltungen/`. Alle Links, Canonicals und die Sitemap baut das Backend aus diesen Werten.
 
 ## Einbindung
 
