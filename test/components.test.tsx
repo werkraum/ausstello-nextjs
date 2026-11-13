@@ -130,6 +130,13 @@ describe('Metadata', () => {
         expect(await detailMetadata({ segment: 'x', basePath: '/v' })).toEqual({});
     });
 
+    it('listMetadata und detailMetadata fragen das übergebene Backend', async () => {
+        const fetchMock = stubFetch(200, envelope());
+        await listMetadata({ basePath: '/v', backendUrl: 'https://sig.de' });
+        await detailMetadata({ segment: 'x', basePath: '/v', backendUrl: 'https://sig.de' });
+        expect(fetchMock.mock.calls.map((c) => String(c[0]).slice(0, 15))).toEqual(['https://sig.de/', 'https://sig.de/']);
+    });
+
     it('detailMetadata ⇒ notFound() bei 404', async () => {
         stubFetch(404, envelope(404));
         await expect(detailMetadata({ segment: 'x', basePath: '/v' })).rejects.toThrow('NEXT_NOT_FOUND');
@@ -140,5 +147,20 @@ describe('cspSources', () => {
     it('liefert den Origin des Backends', () => {
         vi.stubEnv('AUSSTELLO_BACKEND_URL', 'https://mein.ausstello.de/unterpfad/');
         expect(cspSources()).toBe('https://mein.ausstello.de');
+    });
+
+    it('nimmt weitere Backends dazu, jeden Origin nur einmal, globalen zuerst', () => {
+        expect(cspSources('https://sig.de/x', 'https://sig.de', 'https://b.de')).toBe('https://b.de https://sig.de');
+    });
+
+    it('wirft bei ungültiger Adresse', () => {
+        expect(() => cspSources('sig.de')).toThrow(/backendUrl ist keine http\(s\)-Adresse/);
+    });
+});
+
+describe('Exporte', () => {
+    it('cacheTag ist exportiert', async () => {
+        const index = await import('../src/index');
+        expect(index.cacheTag('https://sig.de/')).toBe('ausstello:sig.de');
     });
 });

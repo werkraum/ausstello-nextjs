@@ -14,6 +14,14 @@ afterEach(() => {
 });
 
 describe('sitemapEntries', () => {
+    it('fragt mit backendUrl das andere Backend, ohne das globale', async () => {
+        const fetchMock = vi.fn().mockImplementation(async () => new Response(JSON.stringify({ items: [] })));
+        vi.stubGlobal('fetch', fetchMock);
+        await sitemapEntries({ backendUrl: 'https://sig.de' });
+        await sitemapEntries();
+        expect(fetchMock.mock.calls.map((c) => c[0])).toEqual(['https://sig.de/einbettung/v2/sitemap', 'https://b.de/einbettung/v2/sitemap']);
+    });
+
     it('bildet loc/lastmod ab und verwirft Kaputtes', async () => {
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
             items: [
