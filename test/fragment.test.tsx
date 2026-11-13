@@ -49,6 +49,49 @@ describe('Assets', () => {
     });
 });
 
+describe('Assets je Instanz', () => {
+    const withInstance = (instance: string | null, inlineCss = ':root{--x:1}') => ({ ...envelope.assets, instance, inlineCss });
+
+    it('benennt die Stilvariablen nach der Instanz', () => {
+        const html = renderToStaticMarkup(<Assets assets={withInstance('ab12cd34')} head={envelope.head} />);
+        expect(html).toContain('data-href="ausstello-style-variables-ab12cd34"');
+    });
+
+    it('ohne Instanz (älteres Backend) wie bisher', () => {
+        const html = renderToStaticMarkup(<Assets assets={withInstance(null)} head={envelope.head} />);
+        expect(html).toContain('data-href="ausstello-style-variables"');
+    });
+
+    it('behält die Stilvariablen zweier Instanzen', () => {
+        const html = renderToStaticMarkup(
+            <>
+                <Assets assets={withInstance('a', '.a{}')} head={envelope.head} />
+                <Assets assets={withInstance('b', '.b{}')} head={envelope.head} />
+            </>,
+        );
+        expect(html).toContain('.a{}');
+        expect(html).toContain('.b{}');
+    });
+
+    it.each([
+        ['styles', { styles: false }, 'rel="stylesheet"'],
+        ['scripts', { scripts: false }, 'type="module"'],
+        ['settings', { settings: false }, ':root{--x:1}'],
+    ])('Schalter %s blendet nur seinen Teil aus', (_name, switches, gone) => {
+        const html = renderToStaticMarkup(<Assets assets={envelope.assets} head={envelope.head} {...switches} />);
+        expect(html).not.toContain(gone);
+        expect(html).toContain('rel="next"');
+        expect(html).toContain('type="application/ld+json"');
+    });
+
+    it('Fragment reicht die Schalter durch', () => {
+        const html = renderToStaticMarkup(<Fragment envelope={envelope} styles={false} scripts={false} settings={false} />);
+        expect(html).not.toContain('rel="stylesheet"');
+        expect(html).not.toContain('type="module"');
+        expect(html).not.toContain(':root{--x:1}');
+    });
+});
+
 describe('jsonLdString', () => {
     it('escaped <', () => {
         expect(jsonLdString({ a: '</script>' })).toBe('{"a":"\\u003c/script>"}');

@@ -1,5 +1,5 @@
 import { AusstelloMount } from '@werkraum/ausstello-next/client';
-import { Assets } from './Assets';
+import { Assets, type AssetSwitches } from './Assets';
 import type { Envelope } from './envelope';
 
 /** Kurzer Fingerabdruck des HTML: neuer Inhalt an derselben Stelle ⇒ neuer Mount ⇒ neues ausstello:scan. */
@@ -11,10 +11,10 @@ export function signature(html: string): string {
     return (hash >>> 0).toString(36);
 }
 
-export function Fragment({ envelope, nonce }: { envelope: Envelope; nonce?: string }) {
+export function Fragment({ envelope, nonce, ...switches }: { envelope: Envelope; nonce?: string } & AssetSwitches) {
     return (
         <>
-            <Assets assets={envelope.assets} head={envelope.head} nonce={nonce} />
+            <Assets assets={envelope.assets} head={envelope.head} nonce={nonce} {...switches} />
             <div className="ausstello-next" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: envelope.html }} />
             <AusstelloMount key={signature(envelope.html)} />
         </>

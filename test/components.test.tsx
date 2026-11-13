@@ -79,6 +79,14 @@ describe('backendUrl', () => {
     });
 });
 
+describe('Schalter', () => {
+    it('AusstelloTeaser lässt Stylesheets weg', async () => {
+        stubFetch(200, { ...envelope(), assets: { css: ['https://b.de/output/a.css'], js: [], inlineCss: '' } });
+        const html = renderToStaticMarkup(await AusstelloTeaser({ basePath: '/v', styles: false }));
+        expect(html).not.toContain('a.css');
+    });
+});
+
 describe('AusstelloTeaser', () => {
     it('fragt view=teaser ab', async () => {
         const fetchMock = stubFetch(200, envelope());
