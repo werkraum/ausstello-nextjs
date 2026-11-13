@@ -10,11 +10,11 @@ Next.js 15 oder 16 mit App Router, React 19, Node 20 oder neuer. Getestet (Unit-
 
 Das Paket liegt nicht auf npm, sondern wird direkt aus GitHub installiert. Versionen sind Git-Tags (siehe `CHANGELOG.md`):
 
-    npm install github:werkraum/ausstello-nextjs#v0.2.0
+    npm install github:werkraum/ausstello-nextjs#v0.3.0
 
 In der `package.json` steht danach:
 
-    "@werkraum/ausstello-next": "github:werkraum/ausstello-nextjs#v0.2.0"
+    "@werkraum/ausstello-next": "github:werkraum/ausstello-nextjs#v0.3.0"
 
 Importiert wird über den Paketnamen `@werkraum/ausstello-next`, nicht über den Namen des Repos.
 
@@ -26,7 +26,7 @@ Aktualisieren: Tag in der `package.json` ändern, dann `npm install`.
 
 Umgebungsvariablen:
 
-- `AUSSTELLO_BACKEND_URL` – Adresse des ausstello-Backends, z. B. `https://mein.ausstello.de` (Pflicht; fehlt sie, bricht der Build mit einer Meldung ab)
+- `AUSSTELLO_BACKEND_URL` – Adresse des ausstello-Backends, z. B. `https://mein.ausstello.de` (Pflicht, auch wenn alle Komponenten `backendUrl` setzen; fehlt sie, bricht der Build mit einer Meldung ab)
 - `AUSSTELLO_TIMEOUT` – Zeitlimit je Abruf in Sekunden (Vorgabe 3). Eine Liste ohne Backend-Cache kann 1–3 Sekunden brauchen; läuft das Zeitlimit ab, sehen Besucher den `fallback`. Bei langsamem Backend 5 setzen.
 - `AUSSTELLO_CACHE_MAX_LIFETIME` – höchstens so lange wird eine Antwort gehalten (Vorgabe 300, `0` schaltet den Cache ab)
 
@@ -64,6 +64,64 @@ Teaser, z. B. auf der Startseite: `<AusstelloTeaser basePath="/veranstaltungen" 
 
 `basePath` ist der Pfad der Seite mit der Liste. Unbekannte Termine beantwortet `AusstelloDetail` mit `notFound()`.
 
+Schalter an allen drei Komponenten, Vorgabe jeweils `true`: `styles={false}` lässt die Stylesheets des Backends weg (die Seite bringt eigenes CSS mit), `scripts={false}` das Output-JavaScript (Filter, Detail, Anmeldung funktionieren dann nur, wenn die Seite es selbst lädt), `settings={false}` die Stilvariablen aus Einstellungen > Stil (Farben, Schriftgrößen, Radien).
+
+## Mehrere Instanzen
+
+Eine Website kann Termine aus mehreren ausstello-Backends zeigen, z. B. die Haupt-Instanz und eine zweite für ein Teilprojekt. `AUSSTELLO_BACKEND_URL` bleibt die Haupt-Instanz und die Vorgabe; jede Komponente und jeder Helfer kann mit `backendUrl` auf ein anderes Backend zeigen.
+
+> **Die Adressen müssen zusammenpassen.**
+>
+> - Im **zweiten Backend** unter Teilen > Website > Integration **Domain, Listen-URL und Detail-Präfix auf die Routen setzen, unter denen seine Komponenten auf der Next-Seite stehen** (unten: Listen-URL `/schule-im-gruenen`, Detail-Präfix `/schule-im-gruenen/`). Links, Canonicals und Sitemap baut jedes Backend aus seinen eigenen Werten; stimmen sie nicht, führen Links auf fremde oder leere Seiten.
+> - **Liste, Detailseite, Teaser und die Metadata-Helfer derselben Instanz bekommen dieselbe `backendUrl`.** Eine Detailseite ohne `backendUrl` fragt die Haupt-Instanz und antwortet mit 404.
+> - Beide Backends sollten **dieselbe ausstello-Version** haben. Stylesheets und Output-JS sind geteilt (das zuerst geladene Skript übernimmt alle Termine auf der Seite); nur die Stilvariablen sind je Instanz getrennt.
+
+    // lib/ausstello.ts
+    export const SIG = 'https://sig.ausstello.de';
+
+    // app/schule-im-gruenen/page.tsx
+    import { AusstelloList, listMetadata, type SearchParams } from '@werkraum/ausstello-next';
+    import { SIG } from '@/lib/ausstello';
+
+    type Props = { searchParams: Promise<SearchParams> };
+
+    export const generateMetadata = ({ searchParams }: Props) =>
+        listMetadata({ searchParams, basePath: '/schule-im-gruenen', backendUrl: SIG });
+
+    export default function Page({ searchParams }: Props) {
+        return <AusstelloList searchParams={searchParams} basePath="/schule-im-gruenen" backendUrl={SIG} />;
+    }
+
+    // app/schule-im-gruenen/[segment]/page.tsx
+    import { AusstelloDetail, detailMetadata } from '@werkraum/ausstello-next';
+    import { SIG } from '@/lib/ausstello';
+
+    type Props = { params: Promise<{ segment: string }> };
+
+    export const generateMetadata = async ({ params }: Props) =>
+        detailMetadata({ segment: (await params).segment, basePath: '/schule-im-gruenen', backendUrl: SIG });
+
+    export default async function Page({ params }: Props) {
+        return <AusstelloDetail segment={(await params).segment} basePath="/schule-im-gruenen" backendUrl={SIG} />;
+    }
+
+    // Teaser beider Instanzen auf einer Seite
+    <AusstelloTeaser basePath="/veranstaltungen" perPage={3} />
+    <AusstelloTeaser basePath="/schule-im-gruenen" perPage={3} backendUrl={SIG} />
+
+    // app/sitemap.ts – Einträge beider Instanzen
+    import { sitemapEntries } from '@werkraum/ausstello-next';
+    import { SIG } from '@/lib/ausstello';
+
+    export default async function sitemap() {
+        const [main, sig] = await Promise.all([sitemapEntries(), sitemapEntries({ backendUrl: SIG })]);
+        return [...main, ...sig];
+    }
+
+Beide Instanzen auf einer Seite: Jede behält ihre eigenen Stilvariablen (Backends ab dem Envelope mit `assets.instance`; ältere Backends teilen sich einen Satz, dann gilt einer der beiden). Soll die Haupt-Instanz allein bestimmen, an den Komponenten der zweiten `settings={false}` setzen, bei Bedarf auch `styles={false}` und `scripts={false}`.
+
+CSP: `cspSources(SIG)` liefert die Origins beider Backends. Cache: `revalidateTag(cacheTag(SIG))` leert nur die Antworten der zweiten Instanz, `revalidateTag('ausstello')` alle. Datenschutz: Der Browser kontaktiert jedes eingebundene Backend; beide gehören in die Datenschutzerklärung.
+
 ## Titel, Beschreibung und Open Graph
 
 Das Backend liefert für die **Liste** keinen Titel und keine Beschreibung, nur Canonical, robots (`noindex` auf Filter-URLs) und Blätter-Links. Ohne eigene Angaben erbt die Liste Titel und Beschreibung aus dem Layout – meist die der Startseite. Eigene Werte setzen und die ausstello-Angaben darüberlegen:
@@ -86,17 +144,17 @@ Next führt Metadata nur flach zusammen: Das `openGraph` der Detailseite ersetzt
 ## Auswirkungen auf die Seite
 
 - Besucherparameter `filter[...]` und `page` gehen unverändert ans Backend; andere Parameter nicht.
-- Antworten liegen im Next-Data-Cache (Tag `ausstello`, auch als Export `CACHE_TAG` für `revalidateTag`), höchstens 60 Sekunden bzw. `AUSSTELLO_CACHE_MAX_LIFETIME`; die Sitemap bis zu 3600 Sekunden (ebenfalls durch `AUSSTELLO_CACHE_MAX_LIFETIME` gedeckelt). Sofort leeren: `revalidateTag('ausstello')`. Ist das Backend nicht erreichbar, liefert Next die zuletzt gespeicherte Antwort weiter.
+- Antworten liegen im Next-Data-Cache (Tag `ausstello`, auch als Export `CACHE_TAG` für `revalidateTag`; dazu je Backend `ausstello:<host>`, siehe `cacheTag()`), höchstens 60 Sekunden bzw. `AUSSTELLO_CACHE_MAX_LIFETIME`; die Sitemap bis zu 3600 Sekunden (ebenfalls durch `AUSSTELLO_CACHE_MAX_LIFETIME` gedeckelt). Sofort leeren: `revalidateTag('ausstello')`. Ist das Backend nicht erreichbar, liefert Next die zuletzt gespeicherte Antwort weiter.
 - Next liefert einen abgelaufenen Eintrag einmal aus und erneuert ihn erst im Hintergrund. Ist die Antwort im Cache deutlich älter als ihre Lebensdauer (Backend-Angabe `cache.generatedAt`), holt das Paket sie stattdessen sofort frisch. Sonst sähe der erste Besucher einer lange nicht aufgerufenen Seite alten Inhalt und Verweise auf Stylesheets, die es nach einem Backend-Deploy nicht mehr gibt.
 - Seiten mit ausstello-Komponenten (und die Sitemap) rendert Next immer dynamisch (`connection()`); die Antworten kommen trotzdem aus dem Data-Cache. So bleibt bei einem Ausfall die letzte gute Antwort erhalten, statt dass eine statisch gecachte Seite den Fallback festschreibt.
-- `generateMetadata`-Helfer und Komponente müssen dieselben Optionen bekommen (`basePath`, `perPage`, `preset`, …), damit beide dieselbe Anfrage teilen.
+- `generateMetadata`-Helfer und Komponente müssen dieselben Optionen bekommen (`basePath`, `perPage`, `preset`, `backendUrl`, …), damit beide dieselbe Anfrage teilen.
 - Weiche Navigation: Das Output-JS reagiert auf `ausstello:scan` (neues HTML einlesen) und `ausstello:leave` (beim Verlassen: offenes Filtermodal schließen, Scroll-Sperre lösen).
 - Filter-URLs sind `noindex` und verweisen per Canonical auf die ungefilterte Liste.
 - Seiten mit ausstello-Komponenten werden über `connection()` dynamisch – aber erst, wenn das Rendern die Komponente erreicht. Fragt das Layout beim Build eine Datenbank ab, die es dort nicht gibt, scheitert das Vorrendern vorher. Dann wie bei den übrigen Routen `export const dynamic = 'force-dynamic'` setzen.
 
 ## Datenschutz und CSP
 
-Besucher laden Stylesheets, Skripte, Bilder und Schriften direkt vom ausstello-Backend und schicken Anmeldungen dorthin. `cspSources()` liefert den Origin des Backends; er gehört in `script-src`, `style-src`, `img-src`, `font-src` und `connect-src`. Die Einbindung gehört in die Datenschutzerklärung – und in den Text eines Cookie- oder Consent-Banners, wenn der aufzählt, welche externen Inhalte die Seite lädt.
+Besucher laden Stylesheets, Skripte, Bilder und Schriften direkt vom ausstello-Backend und schicken Anmeldungen dorthin. `cspSources()` liefert den Origin des Backends (mit weiteren Adressen als Argumenten alle Origins, siehe „Mehrere Instanzen“); er gehört in `script-src`, `style-src`, `img-src`, `font-src` und `connect-src`. Die Einbindung gehört in die Datenschutzerklärung – und in den Text eines Cookie- oder Consent-Banners, wenn der aufzählt, welche externen Inhalte die Seite lädt.
 
 ## Entwicklung
 

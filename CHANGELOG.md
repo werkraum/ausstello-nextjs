@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Mehrere ausstello-Instanzen auf einer Website: `backendUrl` an `AusstelloList`, `AusstelloTeaser`, `AusstelloDetail`, `listMetadata`, `detailMetadata` und `sitemapEntries({ backendUrl })` übersteuert `AUSSTELLO_BACKEND_URL` (die bleibt Pflicht). Abrufe und Cache sind je Backend getrennt.
+- Stilvariablen je Instanz: Backends mit `assets.instance` im Envelope bekommen eigene Stilvariablen, zwei Instanzen behalten auf derselben Seite ihre Farben und Schriften. Ältere Backends verhalten sich wie bisher.
+- Schalter `styles`, `scripts`, `settings` an den Komponenten (Vorgabe `true`) blenden Stylesheets, Output-JS oder Stilvariablen aus.
+- `cacheTag(backendUrl)` liefert den Cache-Tag eines Backends (`ausstello:<host>`); `revalidateTag('ausstello')` leert weiterhin alles.
+- `cspSources(...backendUrls)` liefert die Origins aller Backends.
+
 ## 0.2.0
 
 - `preset` kennt Ausschlüsse: `exclude_locations`, `exclude_tags`, `exclude_primary_category`, `exclude_secondary_category` (braucht ein ausstello-Backend mit Ausschluss-Preset).
