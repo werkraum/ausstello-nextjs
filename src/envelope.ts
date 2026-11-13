@@ -15,6 +15,8 @@ export type EnvelopeAssets = {
     css: string[];
     js: { src: string; type: string }[];
     inlineCss: string;
+    /** Kennung der Instanz (Stilvariablen je Instanz); null bei älterem Backend. */
+    instance: string | null;
 };
 
 /** Die Antwort des Backends nach Vertrag Version 2 (EnvelopeResponder). */
@@ -86,6 +88,7 @@ export function parseEnvelope(data: unknown): Envelope | null {
                 return [];
             }),
             inlineCss: typeof assets.inlineCss === 'string' ? assets.inlineCss : '',
+            instance: text(assets.instance),
         },
         maxAge: Number.isInteger(cache.maxAge) ? (cache.maxAge as number) : 60,
         generatedAt: Number.isInteger(cache.generatedAt) ? (cache.generatedAt as number) : null,

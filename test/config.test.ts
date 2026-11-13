@@ -22,6 +22,20 @@ describe('readConfig', () => {
         expect(config.cacheMaxLifetime).toBe(300);
     });
 
+    it('backendUrl übersteuert die Umgebung und wird normalisiert', () => {
+        expect(readConfig({ AUSSTELLO_BACKEND_URL: 'https://a.de' }, 'https://b.de/').backendUrl).toBe('https://b.de');
+        expect(readConfig({ AUSSTELLO_BACKEND_URL: 'https://a.de' }, undefined).backendUrl).toBe('https://a.de');
+    });
+
+    it('wirft bei ungültiger backendUrl mit Hinweis auf die Prop', () => {
+        expect(() => readConfig({ AUSSTELLO_BACKEND_URL: 'https://a.de' }, 'ftp://b.de')).toThrow(/^ausstello: backendUrl ist keine http\(s\)-Adresse: ftp:\/\/b\.de/);
+        expect(() => readConfig({ AUSSTELLO_BACKEND_URL: 'https://a.de' }, ' ')).toThrow(/^ausstello: backendUrl ist leer/);
+    });
+
+    it('verlangt AUSSTELLO_BACKEND_URL auch mit backendUrl', () => {
+        expect(() => readConfig({}, 'https://b.de')).toThrow(/AUSSTELLO_BACKEND_URL ist nicht gesetzt/);
+    });
+
     it('wirft ohne Adresse', () => {
         expect(() => readConfig({})).toThrow(/^ausstello: AUSSTELLO_BACKEND_URL ist nicht gesetzt/);
     });

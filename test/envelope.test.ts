@@ -38,6 +38,12 @@ describe('parseEnvelope', () => {
         expect(envelope!.maxAge).toBe(60);
     });
 
+    it('liest assets.instance, ohne Angabe null (älteres Backend)', () => {
+        expect(parseEnvelope({ ...valid, assets: { ...valid.assets, instance: 'ab12cd34' } })!.assets.instance).toBe('ab12cd34');
+        expect(parseEnvelope(valid)!.assets.instance).toBeNull();
+        expect(parseEnvelope({ ...valid, assets: { ...valid.assets, instance: 7 } })!.assets.instance).toBeNull();
+    });
+
     it('nimmt leere Zeichenketten als nicht gesetzt', () => {
         expect(parseEnvelope({ ...valid, head: { ...valid.head, title: '' } })!.head.title).toBeNull();
     });

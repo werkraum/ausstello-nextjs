@@ -7,7 +7,12 @@ import { Fragment } from './Fragment';
 import { type Awaitable, loadDetail, loadList, loadTeaser } from './load';
 import type { ListOptions, SearchParams } from './query';
 
-type Common = { fallback?: ReactNode; nonce?: string };
+type Common = {
+    fallback?: ReactNode;
+    nonce?: string;
+    /** Anderes ausstello-Backend als AUSSTELLO_BACKEND_URL für diese Komponente. */
+    backendUrl?: string;
+};
 
 export type ListProps = ListOptions & Common & { searchParams?: Awaitable<SearchParams> };
 export type TeaserProps = Omit<ListOptions, 'filterbar'> & Common;
@@ -20,19 +25,19 @@ function render(outcome: Outcome, { fallback, nonce }: Common) {
     return <>{outcome.kind === 'unavailable' ? fallback ?? null : null}</>;
 }
 
-export async function AusstelloList({ searchParams, fallback, nonce, ...options }: ListProps) {
+export async function AusstelloList({ searchParams, fallback, nonce, backendUrl, ...options }: ListProps) {
     await connection();
-    return render(await loadList(options, searchParams), { fallback, nonce });
+    return render(await loadList(options, searchParams, backendUrl), { fallback, nonce });
 }
 
-export async function AusstelloTeaser({ fallback, nonce, ...options }: TeaserProps) {
+export async function AusstelloTeaser({ fallback, nonce, backendUrl, ...options }: TeaserProps) {
     await connection();
-    return render(await loadTeaser(options), { fallback, nonce });
+    return render(await loadTeaser(options, backendUrl), { fallback, nonce });
 }
 
-export async function AusstelloDetail({ segment, basePath, fallback, nonce }: DetailProps) {
+export async function AusstelloDetail({ segment, basePath, fallback, nonce, backendUrl }: DetailProps) {
     await connection();
-    const outcome = await loadDetail(segment, basePath);
+    const outcome = await loadDetail(segment, basePath, backendUrl);
     if (outcome.kind === 'notFound') {
         notFound();
     }

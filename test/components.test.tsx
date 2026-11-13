@@ -64,6 +64,21 @@ describe('AusstelloList', () => {
     });
 });
 
+describe('backendUrl', () => {
+    it('AusstelloList fragt das übergebene Backend', async () => {
+        const fetchMock = stubFetch(200, envelope());
+        await AusstelloList({ basePath: '/v', backendUrl: 'https://sig.de' });
+        expect(fetchMock.mock.calls[0]![0]).toBe('https://sig.de/einbettung/v2/liste?base=%2Fv');
+    });
+
+    it('AusstelloTeaser und AusstelloDetail ebenso', async () => {
+        const fetchMock = stubFetch(200, envelope());
+        await AusstelloTeaser({ basePath: '/v', backendUrl: 'https://sig.de' });
+        await AusstelloDetail({ segment: 'x', basePath: '/v', backendUrl: 'https://sig.de' });
+        expect(fetchMock.mock.calls.map((c) => String(c[0]).slice(0, 15))).toEqual(['https://sig.de/', 'https://sig.de/']);
+    });
+});
+
 describe('AusstelloTeaser', () => {
     it('fragt view=teaser ab', async () => {
         const fetchMock = stubFetch(200, envelope());

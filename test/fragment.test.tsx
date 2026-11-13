@@ -16,6 +16,7 @@ const envelope: Envelope = {
         css: ['https://b.de/output/a.css'],
         js: [{ src: 'https://b.de/output/a.js', type: 'module' }],
         inlineCss: ':root{--x:1}',
+        instance: null,
     },
     maxAge: 60,
     generatedAt: null,

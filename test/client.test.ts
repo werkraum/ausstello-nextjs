@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchEnvelope, fetchJson, fetchOptions } from '../src/client';
+import { cacheTag, fetchEnvelope, fetchJson, fetchOptions } from '../src/client';
 import type { AusstelloConfig } from '../src/config';
 
 const config: AusstelloConfig = { backendUrl: 'https://b.de', timeout: 3, cacheMaxLifetime: 300 };
@@ -18,8 +18,13 @@ describe('fetchOptions', () => {
     it('cacht mit Obergrenze und Tag', () => {
         const options = fetchOptions({ ...config, cacheMaxLifetime: 30 }, 60) as RequestInit & { next?: { revalidate: number; tags: string[] } };
         expect(options.cache).toBe('force-cache');
-        expect(options.next).toEqual({ revalidate: 30, tags: ['ausstello'] });
+        expect(options.next).toEqual({ revalidate: 30, tags: ['ausstello', 'ausstello:b.de'] });
         expect(options.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('Tag je Backend, Schrägstrich egal', () => {
+        expect(cacheTag('https://b.de/')).toBe('ausstello:b.de');
+        expect(cacheTag('https://sig.b.de:8443')).toBe('ausstello:sig.b.de:8443');
     });
 
     it('cacht nicht bei Obergrenze 0', () => {

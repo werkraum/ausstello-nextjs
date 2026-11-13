@@ -2,6 +2,11 @@ import type { AusstelloConfig } from './config';
 import { type Outcome, parseEnvelope } from './envelope';
 
 export const CACHE_TAG = 'ausstello';
+
+/** Tag der Antworten eines Backends, z. B. `revalidateTag(cacheTag('https://sig.ausstello.de'))`. */
+export function cacheTag(backendUrl: string): string {
+    return `${CACHE_TAG}:${new URL(backendUrl).host}`;
+}
 /** EnvelopeResponder::MAX_AGE – vor dem Abruf ist cache.maxAge noch unbekannt. */
 export const ENVELOPE_MAX_AGE = 60;
 /** #[Cache(smaxage: 3600)] an EnvelopeController::sitemap() */
@@ -17,7 +22,7 @@ export function fetchOptions(config: AusstelloConfig, maxAge: number): RequestIn
         return { cache: 'no-store', signal };
     }
     // Schlägt eine Revalidierung fehl, liefert Next die alte Antwort weiter.
-    return { cache: 'force-cache', next: { revalidate, tags: [CACHE_TAG] }, signal } as RequestInit;
+    return { cache: 'force-cache', next: { revalidate, tags: [CACHE_TAG, cacheTag(config.backendUrl)] }, signal } as RequestInit;
 }
 
 function url(config: AusstelloConfig, path: string, query: string): string {

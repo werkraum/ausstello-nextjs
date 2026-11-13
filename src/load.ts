@@ -9,21 +9,27 @@ export type Awaitable<T> = T | Promise<T>;
 
 /**
  * Ein Abruf je Seitenaufruf: generateMetadata und die Komponente landen mit
- * denselben (primitiven) Argumenten hier und teilen sich das Ergebnis.
+ * denselben (primitiven) Argumenten hier und teilen sich das Ergebnis. Das Backend
+ * gehört zum Schlüssel, normalisiert (ohne Schrägstrich am Ende).
  */
-const load = cache((path: string, query: string): Promise<Outcome> => fetchEnvelope(readConfig(), path, query));
+const load = cache((backendUrl: string, path: string, query: string): Promise<Outcome> =>
+    fetchEnvelope(readConfig(process.env, backendUrl), path, query),
+);
 
-export async function loadList(options: ListOptions, searchParams?: Awaitable<SearchParams>): Promise<Outcome> {
-    return load('liste', listQuery('list', options, (await searchParams) ?? {}));
+const backend = (backendUrl?: string): string => readConfig(process.env, backendUrl).backendUrl;
+
+export async function loadList(options: ListOptions, searchParams?: Awaitable<SearchParams>, backendUrl?: string): Promise<Outcome> {
+    return load(backend(backendUrl), 'liste', listQuery('list', options, (await searchParams) ?? {}));
 }
 
-export async function loadTeaser(options: Omit<ListOptions, 'filterbar'>): Promise<Outcome> {
-    return load('liste', listQuery('teaser', options));
+export async function loadTeaser(options: Omit<ListOptions, 'filterbar'>, backendUrl?: string): Promise<Outcome> {
+    return load(backend(backendUrl), 'liste', listQuery('teaser', options));
 }
 
-export async function loadDetail(segment: string, basePath: string): Promise<Outcome> {
+export async function loadDetail(segment: string, basePath: string, backendUrl?: string): Promise<Outcome> {
+    const url = backend(backendUrl);
     if (!isValidSegment(segment)) {
         return { kind: 'notFound' };
     }
-    return load(`termin/${segment}`, detailQuery(basePath));
+    return load(url, `termin/${segment}`, detailQuery(basePath));
 }
